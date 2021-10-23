@@ -22,6 +22,9 @@ namespace IWarpedERC721:
 
     func ownerOf(tokenId : felt) -> (owner : felt):
     end
+
+    func get_l1_address() -> (address : felt):
+    end
 end
 
 # construction guard

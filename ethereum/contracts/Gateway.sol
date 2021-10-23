@@ -42,57 +42,57 @@ contract Gateway {
 
     // Bridging to Starknet
     function warpToStarknet(
-        IERC721 _tokenContract,
-        uint256[] calldata _tokenIds
+        IERC721 _l1TokenContract,
+        address _l2TokenContract,
+        uint256 _tokenId
     ) external {
-        uint256[] memory payload = new uint256[](3);
-        for (uint256 tokenIdx = 0; tokenIdx < _tokenIds.length; ++tokenIdx) {
+        uint256[] memory payload = new uint256[](4);
             require(
-                _tokenContract.ownerOf(_tokenIds[tokenIdx]) == msg.sender,
+                _l1TokenContract.ownerOf(_tokenId) == msg.sender,
                 "Gateway/caller-is-not-owner"
             );
-            _tokenContract.transferFrom(
+            _l1TokenContract.transferFrom(
                 msg.sender,
                 address(this),
-                _tokenIds[tokenIdx]
+                _tokenId
             );
 
             payload[0] = addressToUint(msg.sender);
-            payload[1] = addressToUint(address(_tokenContract));
-            payload[2] = _tokenIds[tokenIdx];
+            payload[1] = addressToUint(address(_l1TokenContract));
+            payload[2] = addressToUint(address(_l2TokenContract));
+            payload[3] = _tokenId;
 
             starknetCore.sendMessageToL2(
                 endpointGateway,
                 ENDPOINT_GATEWAY_SELECTOR,
                 payload
             );
-        }
     }
 
     // Bridging back from Starknet
     function warpFromStarknet(
-        IERC721 _tokenContract,
-        uint256[] calldata _tokenIds
+        IERC721 _l1TokenContract,
+        address _l2TokenContract,
+        uint256 _tokenId
     ) external {
-        uint256[] memory payload = new uint256[](3);
+        uint256[] memory payload = new uint256[](4);
 
-        for (uint256 tokenIdx = 0; tokenIdx < _tokenIds.length; ++tokenIdx) {
             require(
-                _tokenContract.ownerOf(_tokenIds[tokenIdx]) == address(this),
+                _l1TokenContract.ownerOf(_tokenId) == address(this),
                 "Gateway/gateway-is-not-owner"
             );
 
             payload[0] = addressToUint(msg.sender);
-            payload[1] = addressToUint(address(_tokenContract));
-            payload[2] = _tokenIds[tokenIdx];
+            payload[1] = addressToUint(address(_l1TokenContract));
+            payload[2] = addressToUint(address(_l2TokenContract));
+            payload[3] = _tokenId;
 
             starknetCore.consumeMessageFromL2(endpointGateway, payload);
 
-            _tokenContract.transferFrom(
+            _l1TokenContract.transferFrom(
                 address(this),
                 msg.sender,
-                _tokenIds[tokenIdx]
+                _tokenId
             );
-        }
     }
 }

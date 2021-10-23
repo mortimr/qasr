@@ -1,0 +1,55 @@
+[
+    {
+        "inputs": [
+            {
+                "name": "_l1Gateway",
+                "type": "felt"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "from_address",
+                "type": "felt"
+            },
+            {
+                "name": "_owner",
+                "type": "felt"
+            },
+            {
+                "name": "_l1TokenAddress",
+                "type": "felt"
+            },
+            {
+                "name": "_l2TokenAddress",
+                "type": "felt"
+            },
+            {
+                "name": "_tokenId",
+                "type": "felt"
+            }
+        ],
+        "name": "warpFromMainnet",
+        "outputs": [],
+        "type": "l1_handler"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_l1TokenAddress",
+                "type": "felt"
+            },
+            {
+                "name": "_tokenId",
+                "type": "felt"
+            }
+        ],
+        "name": "warpToMainnet",
+        "outputs": [],
+        "type": "function"
+    }
+]

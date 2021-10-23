@@ -10,6 +10,8 @@ contract Gateway {
     IStarknetCore public starknetCore;
     uint256 constant ENDPOINT_GATEWAY_SELECTOR =
         352040181584456735608515580760888541466059565068553383579463728554843487745;
+    uint256 constant WARP_MODE_DEPOSIT = 0;
+    uint256 constant WARP_MODE_WITHDRAW = 1;
 
     // Bootstrap
     constructor(address _starknetCore) {
@@ -46,27 +48,24 @@ contract Gateway {
         address _l2TokenContract,
         uint256 _tokenId
     ) external {
-        uint256[] memory payload = new uint256[](4);
-            require(
-                _l1TokenContract.ownerOf(_tokenId) == msg.sender,
-                "Gateway/caller-is-not-owner"
-            );
-            _l1TokenContract.transferFrom(
-                msg.sender,
-                address(this),
-                _tokenId
-            );
+        uint256[] memory payload = new uint256[](5);
 
-            payload[0] = addressToUint(msg.sender);
-            payload[1] = addressToUint(address(_l1TokenContract));
-            payload[2] = addressToUint(address(_l2TokenContract));
-            payload[3] = _tokenId;
+        // optimistic transfer, should revert if no approved or not owner
+        _l1TokenContract.transferFrom(msg.sender, address(this), _tokenId);
 
-            starknetCore.sendMessageToL2(
-                endpointGateway,
-                ENDPOINT_GATEWAY_SELECTOR,
-                payload
-            );
+        // build deposit message payload
+        payload[0] = WARP_MODE_DEPOSIT;
+        payload[1] = addressToUint(msg.sender);
+        payload[2] = addressToUint(address(_l1TokenContract));
+        payload[3] = addressToUint(address(_l2TokenContract));
+        payload[4] = _tokenId;
+
+        // send message
+        starknetCore.sendMessageToL2(
+            endpointGateway,
+            ENDPOINT_GATEWAY_SELECTOR,
+            payload
+        );
     }
 
     // Bridging back from Starknet
@@ -75,24 +74,19 @@ contract Gateway {
         address _l2TokenContract,
         uint256 _tokenId
     ) external {
-        uint256[] memory payload = new uint256[](4);
+        uint256[] memory payload = new uint256[](5);
 
-            require(
-                _l1TokenContract.ownerOf(_tokenId) == address(this),
-                "Gateway/gateway-is-not-owner"
-            );
+        // build withdraw message payload
+        payload[0] = WARP_MODE_WITHDRAW;
+        payload[1] = addressToUint(msg.sender);
+        payload[2] = addressToUint(address(_l1TokenContract));
+        payload[3] = addressToUint(address(_l2TokenContract));
+        payload[4] = _tokenId;
 
-            payload[0] = addressToUint(msg.sender);
-            payload[1] = addressToUint(address(_l1TokenContract));
-            payload[2] = addressToUint(address(_l2TokenContract));
-            payload[3] = _tokenId;
+        // consum withdraw message
+        starknetCore.consumeMessageFromL2(endpointGateway, payload);
 
-            starknetCore.consumeMessageFromL2(endpointGateway, payload);
-
-            _l1TokenContract.transferFrom(
-                address(this),
-                msg.sender,
-                _tokenId
-            );
+        // optimistic transfer, should revert if gateway is not token owner
+        _l1TokenContract.transferFrom(address(this), msg.sender, _tokenId);
     }
 }

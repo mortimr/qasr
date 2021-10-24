@@ -58,7 +58,7 @@
                 "type": "felt"
             }
         ],
-        "name": "warp_from_mainnet",
+        "name": "bridge_from_mainnet",
         "outputs": [],
         "type": "l1_handler"
     },
@@ -119,7 +119,7 @@
                 "type": "felt"
             }
         ],
-        "name": "warp_to_mainnet",
+        "name": "bridge_to_mainnet",
         "outputs": [],
         "type": "function"
     }

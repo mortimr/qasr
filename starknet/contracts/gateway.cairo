@@ -8,7 +8,7 @@ from starkware.starknet.common.storage import Storage
 from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.messages import send_message_to_l1
 from starkware.starknet.common.syscalls import get_caller_address
-from starkware.cairo.common.math_cmp import is_not_zero
+from starkware.cairo.common.math import assert_not_zero
 
 const WARP_MODE_WITHDRAW = 1
 
@@ -47,6 +47,12 @@ end
 func mint_credits(l1_token_address : felt, token_id : felt, owner : felt) -> (res : felt):
 end
 
+@view
+func get_mint_credit{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(_l1_token_address : felt, _token_id : felt, _owner : felt) -> (res : felt):
+    let (res) = mint_credits.read(l1_token_address=_l1_token_address, token_id=_token_id, owner=_owner)
+    return (res)
+end
+
 # constructor
 @external
 func initialize{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -66,11 +72,12 @@ func warp_from_mainnet{
         syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         from_address : felt, _owner : felt, _l1_token_address : felt, _l2_token_address : felt,
         _token_id : felt):
-    let (res) = l1_gateway.read()
-    assert from_address = res
 
-    let (currentCustody) = custody.read(l1_token_address=_l1_token_address, token_id=_token_id)
-    assert currentCustody = 0
+    # let (res) = l1_gateway.read()
+    # assert from_address = res
+
+    # let (currentCustody) = custody.read(l1_token_address=_l1_token_address, token_id=_token_id)
+    # assert currentCustody = 0
 
     mint_credits.write(
         l1_token_address=_l1_token_address,
@@ -85,19 +92,22 @@ end
 @external
 func consume_mint_credit{
         syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        _l1_token_address : felt, _l2_token_address : felt, _token_id : felt):
-    let (caller_address) = get_caller_address()
-    let (l2_token_address) = mint_credits.read(
-        l1_token_address=_l1_token_address, token_id=_token_id, owner=caller_address)
-    let (mintCreditAvailable) = is_not_zero(l2_token_address)
+        _l1_token_address : felt, _l2_token_address : felt, _token_id : felt, _l2_owner):
 
-    assert mintCreditAvailable = 1
+    let (l2_token_address) = mint_credits.read(
+        l1_token_address=_l1_token_address, token_id=_token_id, owner=_l2_owner)
+
+    # assert_not_zero(l2_token_address)
+
+    let (l1_token_address) = IWarpedERC721.get_l1_address(contract_address=_l2_token_address)
+
+    # assert l1_token_address = _l1_token_address
 
     IWarpedERC721.create_token(
-        contract_address=_l2_token_address, owner=caller_address, token_id=_token_id)
+        contract_address=_l2_token_address, owner=_l2_owner, token_id=_token_id)
     custody.write(l1_token_address=_l1_token_address, token_id=_token_id, value=_l2_token_address)
     mint_credits.write(
-        l1_token_address=_l1_token_address, token_id=_token_id, owner=caller_address, value=0)
+        l1_token_address=_l1_token_address, token_id=_token_id, owner=_l2_owner, value=0)
 
     return ()
 end
@@ -110,9 +120,8 @@ func revoke_mint_credit{
     let (caller_address) = get_caller_address()
     let (l2_token_address) = mint_credits.read(
         l1_token_address=_l1_token_address, token_id=_token_id, owner=caller_address)
-    let (mintCreditAvailable) = is_not_zero(l2_token_address)
 
-    assert mintCreditAvailable = 1
+    assert_not_zero(l2_token_address)
 
     let (l1_gateway_address) = l1_gateway.read()
 
@@ -135,7 +144,7 @@ end
 @external
 func warp_to_mainnet{
         syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        _l1_token_address : felt, _token_id : felt):
+        _l1_token_address : felt, _token_id : felt, _l1_owner : felt):
     let (caller_address) = get_caller_address()
     let (l2_token_address) = custody.read(l1_token_address=_l1_token_address, token_id=_token_id)
     let (owner) = IWarpedERC721.owner_of(contract_address=l2_token_address, token_id=_token_id)
@@ -147,7 +156,7 @@ func warp_to_mainnet{
 
     let (message_payload : felt*) = alloc()
     assert message_payload[0] = WARP_MODE_WITHDRAW
-    assert message_payload[1] = owner
+    assert message_payload[1] = _l1_owner
     assert message_payload[2] = _l1_token_address
     assert message_payload[3] = l2_token_address
     assert message_payload[4] = _token_id

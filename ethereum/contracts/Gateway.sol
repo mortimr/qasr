@@ -5,11 +5,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./IStarknetCore.sol";
 
 contract Gateway {
+
     address public initialEndpointGatewaySetter;
     uint256 public endpointGateway;
     IStarknetCore public starknetCore;
     uint256 constant ENDPOINT_GATEWAY_SELECTOR =
-        352040181584456735608515580760888541466059565068553383579463728554843487745;
+        1286001399277922380574585728897457191013227870708776353075450682753252956216;
     uint256 constant WARP_MODE_DEPOSIT = 0;
     uint256 constant WARP_MODE_WITHDRAW = 1;
 
@@ -24,13 +25,13 @@ contract Gateway {
         initialEndpointGatewaySetter = msg.sender;
     }
 
-    function setEndpointGateway(address _endpointGateway) external {
+    function setEndpointGateway(uint256 _endpointGateway) external {
         require(
             msg.sender == initialEndpointGatewaySetter,
             "Gateway/unauthorized"
         );
         require(endpointGateway == 0, "Gateway/endpoint-gateway-already-set");
-        endpointGateway = addressToUint(_endpointGateway);
+        endpointGateway = _endpointGateway;
     }
 
     // Utils
@@ -45,20 +46,20 @@ contract Gateway {
     // Bridging to Starknet
     function warpToStarknet(
         IERC721 _l1TokenContract,
-        address _l2TokenContract,
-        uint256 _tokenId
+        uint256 _l2TokenContract,
+        uint256 _tokenId,
+        uint256 _account
     ) external {
-        uint256[] memory payload = new uint256[](5);
+        uint256[] memory payload = new uint256[](4);
 
         // optimistic transfer, should revert if no approved or not owner
         _l1TokenContract.transferFrom(msg.sender, address(this), _tokenId);
 
         // build deposit message payload
-        payload[0] = WARP_MODE_DEPOSIT;
-        payload[1] = addressToUint(msg.sender);
-        payload[2] = addressToUint(address(_l1TokenContract));
-        payload[3] = addressToUint(address(_l2TokenContract));
-        payload[4] = _tokenId;
+        payload[0] = _account;
+        payload[1] = addressToUint(address(_l1TokenContract));
+        payload[2] = _l2TokenContract;
+        payload[3] = _tokenId;
 
         // send message
         starknetCore.sendMessageToL2(
@@ -71,7 +72,7 @@ contract Gateway {
     // Bridging back from Starknet
     function warpFromStarknet(
         IERC721 _l1TokenContract,
-        address _l2TokenContract,
+        uint256 _l2TokenContract,
         uint256 _tokenId
     ) external {
         uint256[] memory payload = new uint256[](5);
@@ -80,7 +81,7 @@ contract Gateway {
         payload[0] = WARP_MODE_WITHDRAW;
         payload[1] = addressToUint(msg.sender);
         payload[2] = addressToUint(address(_l1TokenContract));
-        payload[3] = addressToUint(address(_l2TokenContract));
+        payload[3] = _l2TokenContract;
         payload[4] = _tokenId;
 
         // consum withdraw message

@@ -167,7 +167,7 @@ func _mint{
     assert_not_zero(to)
 
     let (exists) = _exists(token_id)
-    assert_not_zero(exists)
+    assert exists = 0
 
     # beforeTokenTransfer
 
@@ -258,6 +258,7 @@ func transfer_from{
     return ()
 end
 
+@external
 func create_token{
         syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner : felt, token_id : felt):
@@ -269,6 +270,7 @@ func create_token{
     return ()
 end
 
+@external
 func delete_token{
         syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         token_id : felt):
@@ -280,6 +282,7 @@ func delete_token{
     return ()
 end
 
+@view
 func get_l1_address{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         address : felt):
     let (address) = l1_address.read()

@@ -1,0 +1,126 @@
+[
+    {
+        "inputs": [
+            {
+                "name": "_l1_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_token_id",
+                "type": "felt"
+            },
+            {
+                "name": "_owner",
+                "type": "felt"
+            }
+        ],
+        "name": "get_mint_credit",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_l1_gateway",
+                "type": "felt"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "from_address",
+                "type": "felt"
+            },
+            {
+                "name": "_owner",
+                "type": "felt"
+            },
+            {
+                "name": "_l1_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_l2_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_token_id",
+                "type": "felt"
+            }
+        ],
+        "name": "warp_from_mainnet",
+        "outputs": [],
+        "type": "l1_handler"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_l1_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_l2_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_token_id",
+                "type": "felt"
+            },
+            {
+                "name": "_l2_owner",
+                "type": "felt"
+            }
+        ],
+        "name": "consume_mint_credit",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_l1_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_l2_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_token_id",
+                "type": "felt"
+            }
+        ],
+        "name": "revoke_mint_credit",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_l1_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "_token_id",
+                "type": "felt"
+            },
+            {
+                "name": "_l1_owner",
+                "type": "felt"
+            }
+        ],
+        "name": "warp_to_mainnet",
+        "outputs": [],
+        "type": "function"
+    }
+]

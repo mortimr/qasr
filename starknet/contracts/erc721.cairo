@@ -6,6 +6,12 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.starknet.common.storage import Storage
 from starkware.cairo.common.math import assert_not_equal, assert_not_zero
 
+# Missing:
+# symbol
+# name
+# tokenURI
+# _baseURI
+
 @storage_var
 func owners(token_id : felt) -> (res : felt):
 end
@@ -54,12 +60,6 @@ func owner_of{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_p
 
     return (res)
 end
-
-# Missing:
-# symbol
-# name
-# tokenURI
-# _baseURI
 
 func _approve{
         syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -126,6 +126,7 @@ end
 func _exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         token_id : felt) -> (res : felt):
     let (res) = owners.read(token_id)
+
     if res == 0:
         return (0)
     else:
@@ -158,12 +159,35 @@ func _mint{
     let (exists) = _exists(token_id)
     assert_not_zero(exists)
 
-    # beforeTokenTransfer
+    _beforeTokenTransfer(0, to, token_id)
 
     let (balance) = balances.read(to)
     balances.write(to, balance + 1)
 
     owners.write(token_id, to)
+
+    return ()
+end
+
+func _burn{
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        token_id : felt):
+    let (owner) = owner_of(token_id)
+
+    _beforeTokenTransfer(owner, 0, token_id)
+
+    # Clear approvals
+    _approve(0, token_id)
+
+    # Temporary workaround for revoked reference
+    let (owner) = owner_of(token_id)
+
+    # Decrease owner balance
+    let (balance) = balances.read(owner)
+    balances.write(owner, balance - 1)
+
+    # Delete owner
+    owners.write(token_id, 0)
 
     return ()
 end
@@ -176,9 +200,9 @@ func _transfer{
 
     assert_not_zero(to)
 
-    # beforeTokenTransfer
+    _beforeTokenTransfer(_from, to, token_id)
 
-    # clear approvals from previous owner
+    # Clear approvals
     _approve(0, token_id)
 
     # Decrease owner balance
@@ -224,5 +248,11 @@ func transfer_from{
     _is_approved_or_owner(caller, token_id=token_id)
 
     _transfer(_from, to, token_id)
+    return ()
+end
+
+func _beforeTokenTransfer{
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        _from : felt, to : felt, token_id : felt):
     return ()
 end

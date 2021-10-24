@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
+import { ethers } from 'ethers';
 
 const L2_CONTRACT_ADDRESS = '0x5e6229F2D4d977d20A50219E521dE6Dd694d45cc';
 const L1_STARKNET_CORE = '0x5e6229F2D4d977d20A50219E521dE6Dd694d45cc';
@@ -14,16 +15,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 			args: [],
 			log: true
 		})
-		console.log(`Sleeping 60sec before etherscan verification`);
-		await new Promise(ok => setTimeout(ok, 60000));
-		try {
-			await hre.run("verify:verify", {
-				address: FERC721Deployment.address,
-				constructorArguments: [],
-			});
-		} catch (e: any) {
-			if (!e.message.includes('Contract source code already verified')) {
-				throw e;
+		if (FERC721Deployment.newlyDeployed) {
+			console.log(`Sleeping 60sec before etherscan verification`);
+			await new Promise(ok => setTimeout(ok, 60000));
+			try {
+				await hre.run("verify:verify", {
+					address: FERC721Deployment.address,
+					constructorArguments: [],
+				});
+			} catch (e: any) {
+				if (!e.message.includes('Contract source code already verified')) {
+					throw e;
+				}
 			}
 		}
 	}
@@ -36,20 +39,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 		log: true
 	})
 
-	console.log(`Sleeping 60sec before etherscan verification`);
-	await new Promise(ok => setTimeout(ok, 60000));
-	try {
-		await hre.run("verify:verify", {
-			address: GatewayDeployment.address,
-			constructorArguments: [
-				L1_STARKNET_CORE
-			],
-		});
-	} catch (e: any) {
-		if (!e.message.includes('Contract source code already verified')) {
-			throw e;
+	if (GatewayDeployment.newlyDeployed) {
+		console.log(`Sleeping 60sec before etherscan verification`);
+		await new Promise(ok => setTimeout(ok, 60000));
+		try {
+			await hre.run("verify:verify", {
+				address: GatewayDeployment.address,
+				constructorArguments: [
+					L1_STARKNET_CORE
+				],
+			});
+		} catch (e: any) {
+			if (!e.message.includes('Contract source code already verified')) {
+				throw e;
+			}
 		}
 	}
+
 
 };
 export default func;

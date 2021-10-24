@@ -1,6 +1,7 @@
 import 'hardhat-deploy';
 import "@nomiclabs/hardhat-etherscan";
 import "hardhat-prettier";
+import '@nomiclabs/hardhat-ethers';
 
 import { HardhatUserConfig } from 'hardhat/types';
 

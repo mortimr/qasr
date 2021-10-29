@@ -10,7 +10,7 @@ export STARKNET_NETWORK=alpha
 
 starknet invoke \
     --address ${L2_GATEWAY_ADDRESS} \
-    --abi ./starknet-artifacts/contracts/Gateway.cairo/gateway_abi.json \
+    --abi ./starknet-artifacts/contracts/gateway.cairo/gateway_abi.json \
     --function initialize \
     --inputs "${L1_GATEWAY_ADDRESS}"
 

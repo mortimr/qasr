@@ -74,11 +74,11 @@ func bridge_from_mainnet{
         syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         from_address : felt, _owner : felt, _l1_token_address : felt, _l2_token_address : felt,
         _token_id : felt):
-    # let (res) = l1_gateway.read()
-    # assert from_address = res
+    let (res) = l1_gateway.read()
+    assert from_address = res
 
-    # let (currentCustody) = custody.read(l1_token_address=_l1_token_address, token_id=_token_id)
-    # assert currentCustody = 0
+    let (currentCustody) = custody.read(l1_token_address=_l1_token_address, token_id=_token_id)
+    assert currentCustody = 0
 
     mint_credits.write(
         l1_token_address=_l1_token_address,
@@ -97,11 +97,11 @@ func consume_mint_credit{
     let (l2_token_address) = mint_credits.read(
         l1_token_address=_l1_token_address, token_id=_token_id, owner=_l2_owner)
 
-    # assert_not_zero(l2_token_address)
+    assert_not_zero(l2_token_address)
 
     let (l1_token_address) = IBridgedERC721.get_l1_address(contract_address=_l2_token_address)
 
-    # assert l1_token_address = _l1_token_address
+    assert l1_token_address = _l1_token_address
 
     IBridgedERC721.create_token(
         contract_address=_l2_token_address, owner=_l2_owner, token_id=_token_id)

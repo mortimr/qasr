@@ -5,14 +5,13 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./IStarknetCore.sol";
 
 contract Gateway {
-
     address public initialEndpointGatewaySetter;
     uint256 public endpointGateway;
     IStarknetCore public starknetCore;
     uint256 constant ENDPOINT_GATEWAY_SELECTOR =
         1286001399277922380574585728897457191013227870708776353075450682753252956216;
-    uint256 constant WARP_MODE_DEPOSIT = 0;
-    uint256 constant WARP_MODE_WITHDRAW = 1;
+    uint256 constant bridge_MODE_DEPOSIT = 0;
+    uint256 constant bridge_MODE_WITHDRAW = 1;
 
     // Bootstrap
     constructor(address _starknetCore) {
@@ -44,7 +43,7 @@ contract Gateway {
     }
 
     // Bridging to Starknet
-    function warpToStarknet(
+    function bridgeToStarknet(
         IERC721 _l1TokenContract,
         uint256 _l2TokenContract,
         uint256 _tokenId,
@@ -70,7 +69,7 @@ contract Gateway {
     }
 
     // Bridging back from Starknet
-    function warpFromStarknet(
+    function bridgeFromStarknet(
         IERC721 _l1TokenContract,
         uint256 _l2TokenContract,
         uint256 _tokenId
@@ -78,7 +77,7 @@ contract Gateway {
         uint256[] memory payload = new uint256[](5);
 
         // build withdraw message payload
-        payload[0] = WARP_MODE_WITHDRAW;
+        payload[0] = bridge_MODE_WITHDRAW;
         payload[1] = addressToUint(msg.sender);
         payload[2] = addressToUint(address(_l1TokenContract));
         payload[3] = _l2TokenContract;

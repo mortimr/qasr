@@ -10,8 +10,8 @@ contract Gateway {
     IStarknetCore public starknetCore;
     uint256 constant ENDPOINT_GATEWAY_SELECTOR =
         1286001399277922380574585728897457191013227870708776353075450682753252956216;
-    uint256 constant bridge_MODE_DEPOSIT = 0;
-    uint256 constant bridge_MODE_WITHDRAW = 1;
+    uint256 constant BRIDGE_MODE_DEPOSIT = 0;
+    uint256 constant BRIDGE_MODE_WITHDRAW = 1;
 
     // Bootstrap
     constructor(address _starknetCore) {
@@ -77,7 +77,7 @@ contract Gateway {
         uint256[] memory payload = new uint256[](5);
 
         // build withdraw message payload
-        payload[0] = bridge_MODE_WITHDRAW;
+        payload[0] = BRIDGE_MODE_WITHDRAW;
         payload[1] = addressToUint(msg.sender);
         payload[2] = addressToUint(address(_l1TokenContract));
         payload[3] = _l2TokenContract;

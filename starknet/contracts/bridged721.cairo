@@ -3,7 +3,6 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.starknet.common.syscalls import get_caller_address
-from starkware.starknet.common.storage import Storage
 from starkware.cairo.common.math import assert_not_equal, assert_not_zero
 
 @storage_var
@@ -35,8 +34,7 @@ func gateway_address() -> (res : felt):
 end
 
 @external
-func initialize{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+func initialize{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         _l1_address : felt, _gateway_address : felt):
     let (_initialized) = initialized.read()
     assert _initialized = 0
@@ -49,7 +47,7 @@ func initialize{
 end
 
 @view
-func balance_of{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func balance_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner : felt) -> (res : felt):
     assert_not_zero(owner)
 
@@ -58,7 +56,7 @@ func balance_of{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check
 end
 
 @view
-func owner_of{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func owner_of{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         token_id : felt) -> (res : felt):
     let (res) = owners.read(token_id=token_id)
     assert_not_zero(res)
@@ -66,22 +64,14 @@ func owner_of{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_p
     return (res)
 end
 
-# Missing:
-# symbol
-# name
-# tokenURI
-# _baseURI
-
-func _approve{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func _approve{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         to : felt, token_id : felt):
     token_approvals.write(token_id=token_id, value=to)
     return ()
 end
 
 @external
-func approve{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+func approve{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         to : felt, token_id : felt):
     let (owner) = owners.read(token_id)
 
@@ -94,8 +84,7 @@ func approve{
     return ()
 end
 
-func _is_operator_or_owner{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+func _is_operator_or_owner{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         address : felt) -> (res : felt):
     let (caller) = get_caller_address()
 
@@ -107,9 +96,9 @@ func _is_operator_or_owner{
     return (is_approved_for_all)
 end
 
-func _is_approved_or_owner{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+func _is_approved_or_owner{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         spender : felt, token_id : felt) -> (res : felt):
+    alloc_locals
     let (exists) = _exists(token_id)
     assert exists = 1
 
@@ -123,9 +112,6 @@ func _is_approved_or_owner{
         return (1)
     end
 
-    # Temporary workaround for `owner` because of revoked reference
-    let (owner) = owner_of(token_id)
-
     let (is_operator) = is_approved_for_all(owner, spender)
     if is_operator == 1:
         return (1)
@@ -134,7 +120,7 @@ func _is_approved_or_owner{
     return (0)
 end
 
-func _exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func _exists{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         token_id : felt) -> (res : felt):
     let (res) = owners.read(token_id)
     if res == 0:
@@ -145,7 +131,7 @@ func _exists{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_pt
 end
 
 @view
-func get_approved{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func get_approved{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         token_id : felt) -> (res : felt):
     let (exists) = _exists(token_id)
     assert exists = 1
@@ -155,14 +141,13 @@ func get_approved{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_che
 end
 
 @view
-func is_approved_for_all{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func is_approved_for_all{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner : felt, operator : felt) -> (res : felt):
     let (res) = operator_approvals.read(owner=owner, operator=operator)
     return (res)
 end
 
-func _mint{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         to : felt, token_id : felt):
     assert_not_zero(to)
 
@@ -179,9 +164,7 @@ func _mint{
     return ()
 end
 
-func _burn{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        token_id : felt):
+func _burn{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(token_id : felt):
     let (owner) = owner_of(token_id)
 
     # before token transfer
@@ -199,8 +182,7 @@ func _burn{
     return ()
 end
 
-func _transfer{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         _from : felt, to : felt, token_id : felt):
     let (_owner_of) = owner_of(token_id)
     assert _owner_of = _from
@@ -226,7 +208,7 @@ func _transfer{
     return ()
 end
 
-func _set_approval_for_all{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func _set_approval_for_all{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner : felt, operator : felt, approved : felt):
     assert_not_equal(owner, operator)
 
@@ -238,8 +220,7 @@ func _set_approval_for_all{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, 
 end
 
 @external
-func set_approval_for_all{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func set_approval_for_all{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         operator : felt, approved : felt):
     let (caller) = get_caller_address()
 
@@ -248,8 +229,7 @@ func set_approval_for_all{
 end
 
 @external
-func transfer_from{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+func transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         _from : felt, to : felt, token_id : felt):
     let (caller) = get_caller_address()
     _is_approved_or_owner(caller, token_id=token_id)
@@ -259,8 +239,7 @@ func transfer_from{
 end
 
 @external
-func create_token{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func create_token{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         owner : felt, token_id : felt):
     let (caller) = get_caller_address()
     let (_gateway_address) = gateway_address.read()
@@ -271,8 +250,7 @@ func create_token{
 end
 
 @external
-func delete_token{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func delete_token{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         token_id : felt):
     let (caller) = get_caller_address()
     let (_gateway_address) = gateway_address.read()
@@ -283,7 +261,7 @@ func delete_token{
 end
 
 @view
-func get_l1_address{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+func get_l1_address{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
         address : felt):
     let (address) = l1_address.read()
     return (address)

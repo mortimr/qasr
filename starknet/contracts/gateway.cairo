@@ -4,7 +4,6 @@
 %builtins pedersen range_check
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.starknet.common.storage import Storage
 from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.messages import send_message_to_l1
 from starkware.starknet.common.syscalls import get_caller_address
@@ -48,7 +47,7 @@ func mint_credits(l1_token_address : felt, token_id : felt, owner : felt) -> (re
 end
 
 @view
-func get_mint_credit{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func get_mint_credit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         _l1_token_address : felt, _token_id : felt, _owner : felt) -> (res : felt):
     let (res) = mint_credits.read(
         l1_token_address=_l1_token_address, token_id=_token_id, owner=_owner)
@@ -57,7 +56,7 @@ end
 
 # constructor
 @external
-func initialize{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func initialize{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         _l1_gateway : felt):
     let (is_initialized) = initialized.read()
     assert is_initialized = 0
@@ -70,8 +69,7 @@ end
 
 # receive and handle deposit messages
 @l1_handler
-func bridge_from_mainnet{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func bridge_from_mainnet{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         from_address : felt, _owner : felt, _l1_token_address : felt, _l2_token_address : felt,
         _token_id : felt):
     let (res) = l1_gateway.read()
@@ -91,8 +89,7 @@ end
 
 # tries to consume mint credit
 @external
-func consume_mint_credit{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func consume_mint_credit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         _l1_token_address : felt, _l2_token_address : felt, _token_id : felt, _l2_owner):
     let (l2_token_address) = mint_credits.read(
         l1_token_address=_l1_token_address, token_id=_token_id, owner=_l2_owner)
@@ -114,8 +111,7 @@ end
 
 # revoke mint credit if consuming is failing
 @external
-func revoke_mint_credit{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func revoke_mint_credit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         _l1_token_address : felt, _l2_token_address : felt, _token_id : felt):
     let (caller_address) = get_caller_address()
     let (l2_token_address) = mint_credits.read(
@@ -142,8 +138,7 @@ end
 
 # burns the L2 ERC721 and sends withdrawal message
 @external
-func bridge_to_mainnet{
-        syscall_ptr : felt*, storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func bridge_to_mainnet{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         _l1_token_address : felt, _token_id : felt, _l1_owner : felt):
     let (caller_address) = get_caller_address()
     let (l2_token_address) = custody.read(l1_token_address=_l1_token_address, token_id=_token_id)

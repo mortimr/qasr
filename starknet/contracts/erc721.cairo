@@ -5,12 +5,6 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.math import assert_not_equal, assert_not_zero
 
-# Missing:
-# symbol
-# name
-# tokenURI
-# _baseURI
-
 @storage_var
 func owners(token_id : felt) -> (res : felt):
 end
@@ -67,6 +61,7 @@ end
 
 # As defined by Chain Agnostics (CAIP-22 and CAIP-29):
 # {blockchain_namespace}:{blockchain_reference}/{asset_namespace}:{asset_reference}/{token_id}
+# Note: This only works for bridged L1-Native tokens...
 struct TokenUri:
     member blockchain_namespace : BlockchainNamespace
     member blockchain_reference : BlockchainReference

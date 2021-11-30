@@ -11,6 +11,9 @@
     "ethers": "^5.5.1",
     "hardhat": "^2.6.7"
   },
+  "scripts": {
+    "deploy": "hardhat deploy --network goerli"
+  },
   "dependencies": {
     "@nomiclabs/hardhat-etherscan": "^2.1.7",
     "@openzeppelin/contracts": "^4.3.2",

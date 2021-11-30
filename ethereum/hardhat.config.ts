@@ -15,17 +15,17 @@ const ehhuc: ExtendedHardhatUserConfig = {
     goerli: {
       live: true,
       saveDeployments: true,
-      url: 'https://eth-goerli.alchemyapi.io/v2/stoIJ04hSyl2rN5CvpcEHz9MPpaNFYIZ',
+      url: process.env.RPC_ENDPOINT as string,
       accounts: {
-        mnemonic: 'eight whisper sweet various ignore bundle put fame custom anger mystery cash'
+        mnemonic: process.env.DEPLOYER_MNEMONIC as string
       }
     }
   },
   namedAccounts: {
-    deployer: '0x574E032f50e806e490Cf3D1194912B9Cc3f5D37D'
+    deployer: process.env.DEPLOYER_ADDRESS as string
   },
   etherscan: {
-    apiKey: "EKVVBPNFFQG47MU6AQFJE4ZGGF8EAZYGD3"
+    apiKey: process.env.ETHERSCAN_API_KEY as string
   }
 };
 

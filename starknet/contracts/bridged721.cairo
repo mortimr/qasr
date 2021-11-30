@@ -3,7 +3,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.starknet.common.syscalls import get_caller_address
-from starkware.cairo.common.math import assert_not_equal, assert_not_zero
+from starkware.cairo.common.math import assert_not_equal, assert_not_zero, assert_nn_le, assert_lt
 
 @storage_var
 func owners(token_id : felt) -> (res : felt):
@@ -32,6 +32,14 @@ end
 @storage_var
 func gateway_address() -> (res : felt):
 end
+
+@storage_var
+func total_supply_counter() -> (res : felt):
+end
+
+# add on transfer hooks
+# call it on tranfer and on burn (transfer to 0)
+# manage global list and per account list
 
 @external
 func initialize{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
@@ -130,6 +138,192 @@ func _exists{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     end
 end
 
+@storage_var
+func _all_tokens_index(_token_id : felt) -> (_token_idx : felt):
+end
+
+@storage_var
+func _all_tokens(_token_idx : felt) -> (_token_id : felt):
+end
+
+@storage_var
+func _owned_tokens(_owner : felt, _token_idx : felt) -> (_token_id : felt):
+end
+
+@storage_var
+func _owned_tokens_index(_token_id : felt) -> (_token_idx : felt):
+end
+
+
+func _add_token_to_all_tokens_enumeration{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _token_id: felt):
+
+    let (last_index) = total_supply_counter.read()
+    _all_tokens_index.write(_token_id=_token_id, value=last_index)
+    _all_tokens.write(_token_idx=last_index, value=_token_id)
+
+    return()
+end
+
+func _remove_token_from_all_tokens_enumeration{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _token_id: felt):
+
+    let (total_supply_count) = total_supply_counter.read()
+    tempvar last_token_index = total_supply_count - 1
+
+    let (token_index) = _all_tokens_index.read(_token_id)
+    let (last_token_id) = _all_tokens.read(last_token_index)
+
+    _all_tokens.write(_token_idx=token_index, value=last_token_id)
+    _all_tokens_index.write(_token_id=last_token_id, value=token_index)
+
+    _all_tokens_index.write(_token_id=_token_id, value=0)
+    _all_tokens.write(_token_idx=last_token_index, value=0)
+
+    return()
+end
+
+func _add_token_to_owner_enumeration{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _to: felt, _token_id: felt):
+
+    let (length) = balances.read(_to)
+    _owned_tokens.write(_owner=_to, _token_idx=length, value=_token_id)
+    _owned_tokens_index.write(_token_id=_token_id, value=length)
+    return ()
+end
+
+func _on_swap_case{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _from: felt, _token_id: felt, _last_token_index: felt, _token_index: felt):
+
+    if _last_token_index != _token_index:
+        let (last_token_id) = _owned_tokens.read(_owner=_from, _token_idx=_last_token_index)
+
+        _owned_tokens.write(_owner=_from, _token_idx=_token_index, value=last_token_id)
+        _owned_tokens_index.write(_token_id=_token_id, value=_token_index)
+        return ()
+    end
+    return ()
+end
+
+func _remove_token_from_owner_enumeration{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _from: felt, _token_id: felt):
+
+    let (balance_value) = balances.read(_from)
+    tempvar last_token_index = balance_value - 1
+    let (token_index) = _owned_tokens_index.read(_token_id)
+
+    _on_swap_case(_from=_from, _token_id=_token_id, _last_token_index=last_token_index, _token_index=token_index)
+
+    return ()
+end
+
+func _on_from_zero{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _from: felt, _token_id: felt
+) -> (_mint_case: felt): 
+
+    if _from == 0:
+        _add_token_to_all_tokens_enumeration(_token_id)
+        # a new token got minted, add to global list
+        return (1)
+
+    end
+    return (0)
+end
+
+func _is_same_address{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _from: felt, _to: felt
+) -> (_is_same: felt):
+    if _from == _to:
+        return (1)
+    end
+    return (0)
+end
+
+func _on_transfer_sender_handler{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _from: felt, _to: felt, _token_id: felt, _mint_case: felt
+): 
+
+    let (address_equality) = _is_same_address(_from=_from, _to=_to)
+    let condition_check = address_equality + _mint_case
+
+    if condition_check == 0: 
+        # a transfer was made
+        _remove_token_from_owner_enumeration(_from=_from, _token_id=_token_id)
+        return ()
+    end
+    return ()
+end
+
+func _on_to_zero{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _to: felt, _token_id: felt
+) -> (_mint_case: felt): 
+
+    if _to == 0:
+        _remove_token_from_all_tokens_enumeration(_token_id)
+        # a token got burned, remove from global list
+        return (1)
+
+    end
+    return (0)
+end
+
+func _on_transfer_receiver_handler{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _from: felt, _to: felt, _token_id: felt, _burn_case: felt
+): 
+
+    let (address_equality) = _is_same_address(_from=_from, _to=_to)
+    let condition_check = address_equality + _burn_case
+
+    if condition_check == 0: 
+        # a transfer was made
+        _add_token_to_owner_enumeration(_to=_to, _token_id=_token_id) 
+        return ()
+    end
+    return ()
+end
+
+func _before_token_transfer{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _from: felt, _to: felt, _token_id: felt):
+
+    let (mint_case) = _on_from_zero(_from=_from, _token_id=_token_id)
+    _on_transfer_sender_handler(_from=_from, _to=_to, _token_id=_token_id, _mint_case=mint_case)
+    let (burn_case) = _on_to_zero(_to=_to, _token_id=_token_id)
+    _on_transfer_receiver_handler(_from=_from, _to=_to, _token_id=_token_id, _burn_case=burn_case)
+
+    return ()
+end
+
+@view
+func token_of_owner_by_index{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _owner: felt, _token_idx: felt) -> (_token_id : felt):
+
+    let (owner_balance) = balances.read(_owner)
+
+    assert_not_equal(owner_balance, 0)
+    assert_lt(_token_idx, owner_balance)
+
+    let (token_id_at_index) = _owned_tokens.read(_owner=_owner, _token_idx=_token_idx)
+    return (token_id_at_index)
+end
+
+@view
+func total_supply{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}() -> (_total_supply : felt):
+    let (total_supply) = total_supply_counter.read()
+    return (total_supply)
+end
+
+@view
+func token_by_index{pedersen_ptr: HashBuiltin*, syscall_ptr: felt*, range_check_ptr}(
+    _token_idx: felt) -> (_token_id : felt):
+    let (total_supply) = total_supply_counter.read()
+
+    assert_not_equal(total_supply, 0)
+    assert_lt(_token_idx, total_supply)
+
+    let (token_id_at_index) = _all_tokens.read(_token_idx=_token_idx)
+    return (token_id_at_index)
+end
+
 @view
 func get_approved{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         token_id : felt) -> (res : felt):
@@ -154,10 +348,13 @@ func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
     let (exists) = _exists(token_id)
     assert exists = 0
 
-    # beforeTokenTransfer
+    _before_token_transfer(_from=0, _to=to, _token_id=token_id)
 
     let (balance) = balances.read(to)
     balances.write(to, balance + 1)
+
+    let (total_supply) = total_supply_counter.read()
+    total_supply_counter.write(total_supply + 1)
 
     owners.write(token_id, to)
 
@@ -165,9 +362,11 @@ func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
 end
 
 func _burn{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(token_id : felt):
-    let (owner) = owner_of(token_id)
+    alloc_locals
 
-    # before token transfer
+    let (local owner) = owner_of(token_id)
+
+    _before_token_transfer(_from=owner, _to=0, _token_id=token_id)
 
     # Clear approvals
     _approve(0, token_id)
@@ -175,6 +374,9 @@ func _burn{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(to
     # Decrease owner balance
     let (balance) = balances.read(owner)
     balances.write(owner, balance - 1)
+
+    let (total_supply) = total_supply_counter.read()
+    total_supply_counter.write(total_supply - 1)
 
     # delete owner
     owners.write(token_id, 0)
@@ -189,7 +391,7 @@ func _transfer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 
     assert_not_zero(to)
 
-    # beforeTokenTransfer
+    _before_token_transfer(_from=_from, _to=to, _token_id=token_id)
 
     # clear approvals from previous owner
     _approve(0, token_id)

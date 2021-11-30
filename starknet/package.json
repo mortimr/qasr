@@ -12,11 +12,12 @@
     "postinstall": "python3 -m venv ./venv && source ./venv/bin/activate && pip install -r requirements.txt",
     "test": "pytest ./contracts_tests/*.py",
     "compile": "hardhat starknet-compile",
-    "deploy:alpha": "hardhat starknet-deploy --starknet-network alpha",
+    "deploy": "node ./scripts/deploy_starknet_and_store_addresses.js",
+    "init_contracts": "node ./scripts/initialize_contracts.js",
     "devnet": "env FLASK_ENV=development starknet-devnet"
   },
   "dependencies": {
-    "@shardlabs/starknet-hardhat-plugin": "0.2.4",
+    "@shardlabs/starknet-hardhat-plugin": "0.3.1",
     "@types/chai": "4.2.22",
     "@types/mocha": "9.0.0",
     "@types/node": "16.11.3",

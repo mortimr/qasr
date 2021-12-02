@@ -14,6 +14,7 @@ import { ethers } from 'ethers';
 import { EthereumGatewayContextProvider } from '../contexts/EthereumGatewayContext';
 import { EthereumBridgingEventsContextProvider } from '../contexts/EthereumBridgingEvents';
 import { StarknetMintCreditContextProvider } from '../contexts/StarknetMintCreditContext';
+import { StarknetWithdrawEventsContextProvider } from '../contexts/StarknetWithdrawEventsContext';
 
 const WalletTypeContainer = styled.div<{ color: string }>`
 	margin: 16px;
@@ -242,26 +243,28 @@ export const LoginGate: React.FC<React.PropsWithChildren<LoginGateProps>> = (pro
 						<EthereumGatewayContextProvider>
 							<EthereumBridgingEventsContextProvider>
 								<StarknetMintCreditContextProvider>
-									<div
-										style={{
-											width: '50%',
-											height: '100%'
-										}}
-									>
-										<EthereumLoginGate
-											EthereumSection={props.EthereumSection}
-										/>
-									</div>
-									<div
-										style={{
-											width: '50%',
-											height: '100%'
-										}}
-									>
-										<StarknetLoginGate
-											StarknetSection={props.StarknetSection}
-										/>
-									</div>
+									<StarknetWithdrawEventsContextProvider>
+										<div
+											style={{
+												width: '50%',
+												height: '100%'
+											}}
+										>
+											<EthereumLoginGate
+												EthereumSection={props.EthereumSection}
+											/>
+										</div>
+										<div
+											style={{
+												width: '50%',
+												height: '100%'
+											}}
+										>
+											<StarknetLoginGate
+												StarknetSection={props.StarknetSection}
+											/>
+										</div>
+									</StarknetWithdrawEventsContextProvider>
 								</StarknetMintCreditContextProvider>
 							</EthereumBridgingEventsContextProvider>
 						</EthereumGatewayContextProvider>

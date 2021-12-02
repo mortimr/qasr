@@ -1,5 +1,17 @@
 [
     {
+        "inputs": [],
+        "name": "get_l1_gateway",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "name": "_l1_token_address",
@@ -102,6 +114,60 @@
         ],
         "name": "revoke_mint_credit",
         "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "l1_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "l2_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "owner",
+                "type": "felt"
+            }
+        ],
+        "name": "get_bridge_back_event_count",
+        "outputs": [
+            {
+                "name": "count",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "l1_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "l2_token_address",
+                "type": "felt"
+            },
+            {
+                "name": "owner",
+                "type": "felt"
+            },
+            {
+                "name": "index",
+                "type": "felt"
+            }
+        ],
+        "name": "get_bridge_back_event",
+        "outputs": [
+            {
+                "name": "token_id",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {

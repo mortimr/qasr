@@ -36,8 +36,18 @@ contract Gateway {
         convertedValue = uint256(uint160(address(value)));
     }
 
-    event BridgeToStarknet(address indexed l1ERC721, uint256 indexed l2ERC721, uint256 indexed l2Account, uint256 tokenId);
-    event BridgeFromStarknet(address indexed l1ERC721, uint256 indexed l2ERC721, address indexed l1Account, uint256 tokenId);
+    event BridgeToStarknet(
+        address indexed l1ERC721,
+        uint256 indexed l2ERC721,
+        uint256 indexed l2Account,
+        uint256 tokenId
+    );
+    event BridgeFromStarknet(
+        address indexed l1ERC721,
+        uint256 indexed l2ERC721,
+        address indexed l1Account,
+        uint256 tokenId
+    );
 
     // Bridging to Starknet
     function bridgeToStarknet(
@@ -64,7 +74,38 @@ contract Gateway {
             payload
         );
 
-        emit BridgeToStarknet(address(_l1TokenContract), _l2TokenContract, _account, _tokenId);
+        emit BridgeToStarknet(
+            address(_l1TokenContract),
+            _l2TokenContract,
+            _account,
+            _tokenId
+        );
+    }
+
+    function bridgeFromStarknetAvailable(
+        IERC721 _l1TokenContract,
+        uint256 _l2TokenContract,
+        uint256 _tokenId
+    ) external view returns (bool) {
+        uint256[] memory payload = new uint256[](5);
+
+        // build withdraw message payload
+        payload[0] = BRIDGE_MODE_WITHDRAW;
+        payload[1] = addressToUint(msg.sender);
+        payload[2] = addressToUint(address(_l1TokenContract));
+        payload[3] = _l2TokenContract;
+        payload[4] = _tokenId;
+
+        bytes32 msgHash = keccak256(
+            abi.encodePacked(
+                endpointGateway,
+                addressToUint(address(this)),
+                payload.length,
+                payload
+            )
+        );
+
+        return starknetCore.l2ToL1Messages(msgHash) > 0;
     }
 
     // Bridging back from Starknet
@@ -88,6 +129,11 @@ contract Gateway {
         // optimistic transfer, should revert if gateway is not token owner
         _l1TokenContract.transferFrom(address(this), msg.sender, _tokenId);
 
-        emit BridgeFromStarknet(address(_l1TokenContract), _l2TokenContract, msg.sender, _tokenId);
+        emit BridgeFromStarknet(
+            address(_l1TokenContract),
+            _l2TokenContract,
+            msg.sender,
+            _tokenId
+        );
     }
 }

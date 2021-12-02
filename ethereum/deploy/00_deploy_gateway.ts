@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
-import { ethers } from 'ethers';
 
 const L1_STARKNET_CORE = '0xde29d060D45901Fb19ED6C6e959EB22d8626708e';
 

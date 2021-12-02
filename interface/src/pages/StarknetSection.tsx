@@ -13,6 +13,7 @@ import styled from 'styled-components';
 import { Button } from 'antd';
 import { StarknetMintCredit } from '../contexts/StarknetMintCreditContext';
 import { ethers } from 'ethers';
+import { useTokenURI } from '../hooks/useTokenURI';
 
 const StarknetIcon = () => {
 	const starknet = useStarknet()
@@ -133,6 +134,7 @@ const MintableERC721Displayer = ({ mc }: { mc: StarknetMintCredit }) => {
 	const [clicked, setClicked] = useState(false);
 
 	const tokenUri = _tokenUri ? (_tokenUri[0] !== '' ? _tokenUri[0] : null) : null;
+	const tokenUriData = useTokenURI(tokenUri);
 
 	return <div
 		style={{
@@ -147,7 +149,7 @@ const MintableERC721Displayer = ({ mc }: { mc: StarknetMintCredit }) => {
 		}}
 	>
 		{
-			tokenUri
+			tokenUriData.status === 'READY'
 
 				?
 				<img
@@ -156,7 +158,7 @@ const MintableERC721Displayer = ({ mc }: { mc: StarknetMintCredit }) => {
 						height: 200,
 						borderRadius: 16
 					}}
-					src={'https://ipfs.io/ipfs/QmPbxeGcXhYQQNgsC6a36dDyYUcHgMLnGKnF8pVFmGsvqi'} />
+					src={tokenUriData.image} />
 
 				:
 				<div
@@ -206,7 +208,10 @@ const MintableERC721Displayer = ({ mc }: { mc: StarknetMintCredit }) => {
 				disabled={
 					serc721.valid !== true
 				}
-				onClick={() => mintCredits.mint(mc)}
+				onClick={() => {
+					mintCredits.mint(mc)
+					setClicked(true)
+				}}
 			>Mint</StyledButton>
 
 		</div>
@@ -227,6 +232,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 	const [clicked, setClicked] = useState(false);
 
 	const tokenUri = _tokenUri ? (_tokenUri[0] !== '' ? _tokenUri[0] : null) : null;
+	const tokenUriData = useTokenURI(tokenUri);
 
 	return <div
 		style={{
@@ -241,7 +247,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 		}}
 	>
 		{
-			tokenUri
+			tokenUriData.status === 'READY'
 
 				?
 				<img
@@ -250,7 +256,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 						height: 200,
 						borderRadius: 16
 					}}
-					src={'https://ipfs.io/ipfs/QmPbxeGcXhYQQNgsC6a36dDyYUcHgMLnGKnF8pVFmGsvqi'} />
+					src={tokenUriData.image} />
 
 				:
 				<div
@@ -315,8 +321,6 @@ export const StarknetSection = () => {
 
 	const serc721 = useStarknetERC721();
 	const mintCredits = useStarknetMintCredits();
-
-	console.log('owned starknet erc721', serc721.ownedTokens);
 
 	if (serc721.valid === null) {
 		return <p>LOADING</p>

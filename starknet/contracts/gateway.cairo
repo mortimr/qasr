@@ -36,6 +36,12 @@ end
 func l1_gateway() -> (res : felt):
 end
 
+@view
+func get_l1_gateway{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
+    let (l1_gateway_address) = l1_gateway.read()
+    return (l1_gateway_address)
+end
+
 # keep track of the minted ERC721
 @storage_var
 func custody(l1_token_address : felt, token_id : felt) -> (res : felt):
@@ -136,6 +142,28 @@ func revoke_mint_credit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     return ()
 end
 
+@storage_var
+func bridge_back_events(l1_token_address : felt, l2_token_address : felt, owner : felt, index : felt) -> (token_id : felt):
+end
+
+@storage_var
+func bridge_back_event_count(l1_token_address : felt, l2_token_address : felt, owner : felt) -> (count : felt):
+end
+
+@view
+func get_bridge_back_event_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        l1_token_address : felt, l2_token_address : felt, owner : felt) -> (count : felt):
+    let (count) = bridge_back_event_count.read(l1_token_address=l1_token_address, l2_token_address=l2_token_address, owner=owner)
+    return (count)
+end
+
+@view
+func get_bridge_back_event{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        l1_token_address : felt, l2_token_address : felt, owner : felt, index : felt) -> (token_id : felt):
+    let (token_id) = bridge_back_events.read(l1_token_address=l1_token_address, l2_token_address=l2_token_address, owner=owner, index=index)
+    return (token_id)
+end
+
 # burns the L2 ERC721 and sends withdrawal message
 @external
 func bridge_to_mainnet{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -155,6 +183,12 @@ func bridge_to_mainnet{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     assert message_payload[2] = _l1_token_address
     assert message_payload[3] = l2_token_address
     assert message_payload[4] = _token_id
+
+    let (user_bridge_back_event_count) = bridge_back_event_count.read(l1_token_address=_l1_token_address, l2_token_address=l2_token_address, owner=_l1_owner)
+
+    bridge_back_events.write(l1_token_address=_l1_token_address, l2_token_address=l2_token_address, owner=_l1_owner, index=user_bridge_back_event_count, value=_token_id)
+
+    bridge_back_event_count.write(l1_token_address=_l1_token_address, l2_token_address=l2_token_address, owner=_l1_owner, value=user_bridge_back_event_count + 1)
 
     send_message_to_l1(to_address=l1_gateway_address, payload_size=5, payload=message_payload)
 

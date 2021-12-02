@@ -12,6 +12,7 @@ import { Button } from 'antd';
 import { useStarknetERC721 } from '../hooks/useStarknetERC721';
 import styled from 'styled-components';
 import { useEthereumGateway } from '../hooks/useEthereumGateway';
+import { useTokenURI } from '../hooks/useTokenURI';
 
 const EthereumIcon = () => {
 	const ethers = useEthers()
@@ -129,8 +130,9 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 		args: [ethers.BigNumber.from(id)]
 	}]);
 	const [clicked, setClicked] = useState(false);
-
 	const tokenUri = _tokenUri ? (_tokenUri[0] !== '' ? _tokenUri[0] : null) : null;
+	const tokenUriData = useTokenURI(tokenUri);
+
 
 	return <div
 		style={{
@@ -145,7 +147,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 		}}
 	>
 		{
-			tokenUri
+			tokenUriData.status === 'READY'
 
 				?
 				<img
@@ -154,7 +156,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 						height: 200,
 						borderRadius: 16
 					}}
-					src={'https://ipfs.io/ipfs/QmPbxeGcXhYQQNgsC6a36dDyYUcHgMLnGKnF8pVFmGsvqi'} />
+					src={tokenUriData.image} />
 
 				:
 				<div

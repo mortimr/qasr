@@ -1,0 +1,122 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { getStarknet } from "@argent/get-starknet"
+import { utils, ethers } from 'ethers';
+import { ERC721Abi } from './ERC721.abi';
+import { useBlockNumber, useContractCalls, useEthers } from '@usedapp/core';
+import { useEthereumERC721 } from '../hooks/useEthereumERC721';
+import { useStarknet } from "../hooks/useStarknet";
+import { getSelectorFromName } from "starknet/dist/utils/starknet";
+import { BigNumber } from 'ethers'
+import { useEthereumBridgingEvents } from '../hooks/useEthereumBridgingEvents';
+import { useStarknetERC721 } from '../hooks/useStarknetERC721';
+import { useAsyncState } from "../hooks/useAsyncState";
+import GatewayArtifact from '../ethereum_artifacts/goerli/Gateway.json';
+
+export interface StarknetWithdrawEvent {
+	l1Address: string;
+	l2Address: string;
+	tokenId: string;
+	account: string; // l1
+}
+
+export interface StarknetWithdrawEventsContextInterface {
+	events: StarknetWithdrawEvent[];
+}
+
+export const StarknetWithdrawEventsContext = React.createContext<StarknetWithdrawEventsContextInterface>({
+	events: []
+})
+
+const unOddHex = (v: string) => v.length % 2 === 1 ? `0x0${v.slice(2)}` : v;
+
+export const StarknetWithdrawEventsContextProvider: React.FC<React.PropsWithChildren<unknown>> = (props: React.PropsWithChildren<unknown>): React.ReactElement => {
+
+	const [events, setEvents] = useAsyncState(null);
+	const [total, setTotal] = useState(0);
+	const [checked, setChecked] = useAsyncState(0);
+	const starknet = useStarknet();
+	const erc721 = useEthereumERC721();
+	const serc721 = useStarknetERC721();
+	const { account, library } = useEthers();
+
+	const [timer, setTimer] = useState(Date.now());
+
+	useEffect(() => {
+		const tid = setTimeout(() => {
+			setTimer(Date.now())
+		}, 5000);
+
+		return () => {
+			clearTimeout(tid);
+		}
+	}, [timer])
+
+	useEffect(() => {
+		if (!events.fetching && erc721.address && serc721.address && starknet.starknet && account) {
+			events.setFetching();
+			setTimeout(async () => {
+				try {
+					const bridgeBackEventCount = await starknet.starknet.provider.callContract(
+						{
+							contract_address: starknet.gateway,
+							entry_point_selector: getSelectorFromName('get_bridge_back_event_count'),
+							calldata: [
+								BigNumber.from(erc721.address).toString(),
+								BigNumber.from(serc721.address).toString(),
+								BigNumber.from(account).toString()
+							]
+						}
+					);
+					const totalCount = parseInt(bridgeBackEventCount.result[0].slice(2), 16);
+					setTotal(totalCount);
+				} catch (e) {
+
+				}
+				await new Promise(ok => setTimeout(ok, 3000));
+				events.setNotFetching();
+			}, 0);
+		}
+	}, [events, account, timer, erc721.address, serc721.address, starknet.gateway, starknet.starknet])
+
+	useEffect(() => {
+		if (!checked.fetching && erc721.address && serc721.address && starknet.starknet && account) {
+			checked.setFetching();
+			setTimeout(async () => {
+				const GatewayContract = new ethers.Contract(GatewayArtifact.address, GatewayArtifact.abi, library);
+				for (let idx = 0; idx < total; ++idx) {
+					try {
+						const bridgeBackEvent = await starknet.starknet.provider.callContract(
+							{
+								contract_address: starknet.gateway,
+								entry_point_selector: getSelectorFromName('get_bridge_back_event'),
+								calldata: [
+									BigNumber.from(erc721.address).toString(),
+									BigNumber.from(serc721.address).toString(),
+									BigNumber.from(account).toString(),
+									idx.toString()
+								]
+							}
+						);
+
+						const tokenId = bridgeBackEvent.result[0];
+
+						const messageExists = await GatewayContract.bridgeFromStarknetAvailable(erc721.address, serc721.address, tokenId);
+
+						console.log('ID IS ', bridgeBackEvent.result[0], messageExists)
+
+					} catch (e) {
+
+					}
+				}
+				await new Promise(ok => setTimeout(ok, 3000));
+				checked.setNotFetching();
+			}, 0);
+		}
+	}, [events, account, erc721.address, serc721.address, starknet.gateway, starknet.starknet, checked, total, setChecked, library])
+
+	return <StarknetWithdrawEventsContext.Provider value={{
+		events: events.state || []
+	}}>
+		{props.children}
+	</StarknetWithdrawEventsContext.Provider>
+}

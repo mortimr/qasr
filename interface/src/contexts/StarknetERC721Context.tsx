@@ -97,8 +97,6 @@ export const StarknetERC721ContextProvider: React.FC<React.PropsWithChildren<{ a
 						setUserBalance(userBalanceParsed);
 						const progressive = ownedTokens.state === null;
 
-						console.log('balance', userBalance)
-
 						const tokens: string[] = [];
 
 						for (let idx = 0; idx < userBalanceParsed; ++idx) {
@@ -110,7 +108,6 @@ export const StarknetERC721ContextProvider: React.FC<React.PropsWithChildren<{ a
 										calldata: [BigNumber.from(starknet.account).toString(), idx.toString()]
 									}
 								);
-								console.log('id', tokenId);
 								if (tokenId.result) {
 									tokens.push(BigNumber.from(tokenId.result[0]).toString());
 									if (progressive) {

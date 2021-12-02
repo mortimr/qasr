@@ -15,17 +15,17 @@ const ehhuc: ExtendedHardhatUserConfig = {
     goerli: {
       live: true,
       saveDeployments: true,
-      url: process.env.RPC_ENDPOINT as string,
+      url: process.env.RPC_ENDPOINT as string || '',
       accounts: {
-        mnemonic: process.env.DEPLOYER_MNEMONIC as string
+        mnemonic: process.env.DEPLOYER_MNEMONIC as string || ''
       }
     }
   },
   namedAccounts: {
-    deployer: process.env.DEPLOYER_ADDRESS as string
+    deployer: process.env.DEPLOYER_ADDRESS as string || ''
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY as string
+    apiKey: process.env.ETHERSCAN_API_KEY as string || ''
   }
 };
 

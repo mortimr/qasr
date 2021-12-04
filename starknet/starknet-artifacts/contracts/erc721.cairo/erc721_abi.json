@@ -51,7 +51,7 @@
                 "type": "felt"
             }
         ],
-        "name": "AssetReference",
+        "name": "AssetNamespace",
         "size": 1,
         "type": "struct"
     },
@@ -85,7 +85,7 @@
                 "type": "felt"
             }
         ],
-        "name": "AssetNamespace",
+        "name": "AssetReference",
         "size": 1,
         "type": "struct"
     },

@@ -108,6 +108,32 @@ contract Gateway {
         return starknetCore.l2ToL1Messages(msgHash) > 0;
     }
 
+    function debug_bridgeFromStarknetAvailable(
+        IERC721 _l1TokenContract,
+        uint256 _l2TokenContract,
+        uint256 _tokenId
+    ) external view returns (bytes32) {
+        uint256[] memory payload = new uint256[](5);
+
+        // build withdraw message payload
+        payload[0] = BRIDGE_MODE_WITHDRAW;
+        payload[1] = addressToUint(msg.sender);
+        payload[2] = addressToUint(address(_l1TokenContract));
+        payload[3] = _l2TokenContract;
+        payload[4] = _tokenId;
+
+        bytes32 msgHash = keccak256(
+            abi.encodePacked(
+                endpointGateway,
+                addressToUint(address(this)),
+                payload.length,
+                payload
+            )
+        );
+
+        return msgHash;
+    }
+
     // Bridging back from Starknet
     function bridgeFromStarknet(
         IERC721 _l1TokenContract,

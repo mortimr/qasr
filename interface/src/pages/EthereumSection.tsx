@@ -13,6 +13,8 @@ import { useStarknetERC721 } from '../hooks/useStarknetERC721';
 import styled from 'styled-components';
 import { useEthereumGateway } from '../hooks/useEthereumGateway';
 import { useTokenURI } from '../hooks/useTokenURI';
+import { useStarknetWithdrawEvents } from '../hooks/useStarknetWithdrawEvents';
+import { StarknetWithdrawEvent } from '../contexts/StarknetWithdrawEventsContext';
 
 const EthereumIcon = () => {
 	const ethers = useEthers()
@@ -119,6 +121,103 @@ const StyledButton = styled(Button) <{ disabled: boolean }>`
 	`}
 `
 
+const ERC721WithdrawnDisplayer = ({ we }: { we: StarknetWithdrawEvent }) => {
+	const erc721 = useEthereumERC721()
+	const serc721 = useStarknetERC721();
+	const gateway = useEthereumGateway();
+	const [_tokenUri] = useContractCalls([{
+		address: erc721.address,
+		abi: erc721.abi,
+		method: 'tokenURI',
+		args: [ethers.BigNumber.from(we.tokenId)]
+	}]);
+	const [clicked, setClicked] = useState(false);
+	const tokenUri = _tokenUri ? (_tokenUri[0] !== '' ? _tokenUri[0] : null) : null;
+	const tokenUriData = useTokenURI(tokenUri);
+	const withdrawEvents = useStarknetWithdrawEvents();
+
+	return <div
+		style={{
+			width: 200,
+			backgroundColor: '#716b9422',
+			margin: 12,
+			display: 'flex',
+			flexDirection: 'column',
+			alignItems: 'center',
+			justifyContent: 'flex-start',
+			borderRadius: 16
+		}}
+	>
+		{
+			tokenUriData.status === 'READY'
+
+				?
+				<img
+					style={{
+						width: 200,
+						height: 200,
+						borderRadius: 16
+					}}
+					src={tokenUriData.image} />
+
+				:
+				<div
+					style={{
+						width: 200,
+						height: 200,
+						borderRadius: 16,
+						backgroundColor: '#716b9422',
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center'
+					}}
+				>
+					<span
+						style={{
+							fontSize: 150,
+							fontWeight: 'bolder',
+							color: '#716b9444'
+						}}
+					>?</span>
+				</div>
+		}
+		<span
+			style={{
+				fontSize: 16,
+				marginTop: 8,
+				color: '#716b94'
+			}}
+		>#{we.tokenId}</span>
+		<div
+			style={{
+				width: '100%',
+				marginBottom: 16,
+				display: 'flex',
+				justifyContent: 'center',
+				alignItems: 'center'
+			}}
+		>
+			<StyledButton
+				style={{
+					width: '85%',
+					borderRadius: 8,
+
+				}}
+				loading={(withdrawEvents.claimState.status === 'Mining' && clicked) || clicked}
+				type={'primary'}
+				disabled={
+					serc721.valid !== true
+				}
+				onClick={() => {
+					withdrawEvents.claim(we)
+					setClicked(true)
+				}}
+			>Claim</StyledButton>
+		</div>
+
+	</div>
+
+}
 const ERC721Displayer = ({ id }: { id: string }) => {
 	const erc721 = useEthereumERC721()
 	const serc721 = useStarknetERC721();
@@ -252,6 +351,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 
 export const EthereumSection = () => {
 	const erc721 = useEthereumERC721();
+	const withdrawEvents = useStarknetWithdrawEvents();
 
 	if (erc721.valid === null) {
 		return <p>LOADING</p>
@@ -310,6 +410,9 @@ export const EthereumSection = () => {
 					flexWrap: 'wrap'
 				}}
 			>
+				{
+					withdrawEvents.events.length ? withdrawEvents.events.map((we: StarknetWithdrawEvent, idx: number) => <ERC721WithdrawnDisplayer we={we} key={we.tokenId} />) : null
+				}
 				{
 					erc721.ownedTokens ? erc721.ownedTokens.map((tokenId: string, idx: number) => <ERC721Displayer id={tokenId} key={tokenId} />) : null
 				}

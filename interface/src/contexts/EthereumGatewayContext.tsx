@@ -8,10 +8,12 @@ import { useEthereumERC721 } from '../hooks/useEthereumERC721';
 import { Contract } from "@usedapp/core/node_modules/ethers";
 import { useStarknetERC721 } from '../hooks/useStarknetERC721';
 import { useStarknet } from '../hooks/useStarknet';
+import { nodeModuleNameResolver } from "typescript";
 
 export interface EthereumGatewayContextInterface {
 	address: string;
 	abi: utils.Interface;
+	gatewayAbi: utils.Interface;
 	needsApproval: boolean;
 	approve: () => void;
 	approveState: TransactionStatus;
@@ -22,6 +24,7 @@ export interface EthereumGatewayContextInterface {
 export const EthereumGatewayContext = React.createContext<EthereumGatewayContextInterface>({
 	address: null,
 	abi: null,
+	gatewayAbi: null,
 	needsApproval: null,
 	approve: () => {},
 	approveState: null,
@@ -38,6 +41,7 @@ export const EthereumGatewayContextProvider: React.FC<React.PropsWithChildren<un
 	const [EthereumGatewayContextState] = useState({
 		address: gatewayArtifact.address,
 		abi: new utils.Interface(ERC721Abi),
+		gatewayAbi: new utils.Interface(gatewayArtifact.abi)
 	})
 
 	const approvedForAll = useContractCall({

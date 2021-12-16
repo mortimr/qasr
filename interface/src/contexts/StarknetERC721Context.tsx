@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { getStarknet } from "@argent/get-starknet"
-import { utils, ethers } from 'ethers';
-import { ERC721Abi } from './ERC721.abi';
-import { useBlockNumber, useContractCalls, useEthers } from '@usedapp/core';
+import { ethers } from 'ethers';
+import { useEthers } from '@usedapp/core';
 import { useEthereumERC721 } from '../hooks/useEthereumERC721';
 import { useStarknet } from "../hooks/useStarknet";
 import { getSelectorFromName } from "starknet/dist/utils/starknet";
@@ -26,8 +24,6 @@ export const StarknetERC721Context = React.createContext<StarknetERC721ContextIn
 	total_supply: null,
 	bridgeBack: () => { }
 })
-
-const evenHex = (v: string) => v.length % 2 === 1 ? `0x0${v.slice(2)}` : v
 
 const fetching = (...args: AsyncState[]): boolean => {
 	return args.map(v => v.fetching).filter(v => v === true).length > 0

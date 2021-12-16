@@ -5,10 +5,8 @@ import { ReactComponent as MetamaskLogo } from './metamask.svg';
 import { ReactComponent as WalletConnectLogo } from './walletconnect.svg';
 import { ReactComponent as ArgentXLogo } from './argentx.svg';
 import { Tooltip } from 'antd'
-import { EthereumSection } from './EthereumSection';
-import { OmitProps } from 'antd/lib/transfer/ListBody';
 import { useParams } from 'react-router-dom';
-import { EthereumERC721Context, EthereumERC721ContextProvider } from '../contexts/EthereumERC721Context';
+import { EthereumERC721ContextProvider } from '../contexts/EthereumERC721Context';
 import { StarknetERC721ContextProvider } from '../contexts/StarknetERC721Context';
 import { ethers } from 'ethers';
 import { EthereumGatewayContextProvider } from '../contexts/EthereumGatewayContext';

@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { getStarknet } from "@argent/get-starknet"
+import React, { useEffect, useState } from "react";
 import { utils, ethers } from 'ethers';
 import { ERC721Abi } from './ERC721.abi';
 import { useBlockNumber, useContractCalls, useEthers } from '@usedapp/core';

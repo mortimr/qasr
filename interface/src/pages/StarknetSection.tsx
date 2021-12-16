@@ -1,4 +1,4 @@
-import { ChainId, getExplorerAddressLink, useEthers, useLookupAddress, useContractCalls } from '@usedapp/core';
+import { useContractCalls } from '@usedapp/core';
 import { useMemo, useState } from 'react';
 import makeBlockie from 'ethereum-blockies-base64';
 import { useStarknet } from '../hooks/useStarknet';
@@ -74,6 +74,7 @@ const StarknetIcon = () => {
 			}}
 		>{starknet.account}</span>
 		<img
+			alt="Blockies"
 			style={{
 				borderRadius: 16,
 				height: 36
@@ -153,6 +154,7 @@ const MintableERC721Displayer = ({ mc }: { mc: StarknetMintCredit }) => {
 
 				?
 				<img
+					alt="NFT"
 					style={{
 						width: 200,
 						height: 200,
@@ -251,6 +253,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 
 				?
 				<img
+					alt="NFT"
 					style={{
 						width: 200,
 						height: 200,
@@ -383,7 +386,7 @@ export const StarknetSection = () => {
 					mintCredits.mintCredits?.length ? mintCredits.mintCredits.map((mc, idx) => <MintableERC721Displayer mc={mc} key={idx} />) : null
 				}
 				{
-					serc721.ownedTokens?.length ? serc721.ownedTokens.map(tid => <ERC721Displayer id={tid} key={tid}/>) : null
+					serc721.ownedTokens?.length ? serc721.ownedTokens.map(tid => <ERC721Displayer id={tid} key={tid} />) : null
 				}
 			</div>
 		</div>

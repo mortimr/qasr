@@ -1,8 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { getStarknet } from "@argent/get-starknet"
-import { utils, ethers } from 'ethers';
-import { ERC721Abi } from './ERC721.abi';
-import { useBlockNumber, useContractCalls, useEthers } from '@usedapp/core';
+import React, { useEffect, useState } from "react";
+import { ethers } from 'ethers';
+import { useBlockNumber,useEthers } from '@usedapp/core';
 import GatewayArtifact from '../ethereum_artifacts/goerli/Gateway.json';
 import { useStarknet } from '../hooks/useStarknet';
 import { useEthereumERC721 } from "../hooks/useEthereumERC721";

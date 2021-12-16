@@ -7,6 +7,7 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
+  Link
 } from "react-router-dom";
 
 function App() {
@@ -23,7 +24,16 @@ function App() {
         />
       </Route>
       <Route>
-        <p>OLALA PAS BON LA</p>
+        <div
+          style={{
+            margin: 12
+          }}
+        >
+          <p>This is a demo of the Qasr NFT bridge</p>
+          <p>Mint fake NFTs <a href="https://goerli.etherscan.io/address/0x2e695b94dC82Ae61d665d9f546029f379FFa8bAC#writeContract">here</a></p>
+          <p>Bridge them <Link to="/0x2e695b94dC82Ae61d665d9f546029f379FFa8bAC/0x053c9f44836ad00b25c65b360c111bdf2d32115faf2f705d84f1acf69f244775">here</Link></p>
+
+        </div>
       </Route>
       </Switch>
 

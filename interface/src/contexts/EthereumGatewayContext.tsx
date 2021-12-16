@@ -1,14 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { getStarknet } from "@argent/get-starknet"
+import React, { useCallback, useState } from "react";
 import { utils,  } from 'ethers';
 import { ERC721Abi } from './ERC721.abi';
-import { TransactionStatus, useBlockNumber, useContractCall, useContractCalls, useContractFunction, useEthers } from '@usedapp/core';
+import { TransactionStatus,useContractCall, useContractFunction, useEthers } from '@usedapp/core';
 import gatewayArtifact from '../ethereum_artifacts/goerli/Gateway.json';
 import { useEthereumERC721 } from '../hooks/useEthereumERC721';
 import { Contract } from "@usedapp/core/node_modules/ethers";
 import { useStarknetERC721 } from '../hooks/useStarknetERC721';
 import { useStarknet } from '../hooks/useStarknet';
-import { nodeModuleNameResolver } from "typescript";
 
 export interface EthereumGatewayContextInterface {
 	address: string;

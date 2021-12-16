@@ -1,9 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { getStarknet } from "@argent/get-starknet"
-import { utils, ethers } from 'ethers';
-import { ERC721Abi } from './ERC721.abi';
-import { useBlockNumber, useContractCalls, useEthers } from '@usedapp/core';
-import { useEthereumERC721 } from '../hooks/useEthereumERC721';
 import { useStarknet } from "../hooks/useStarknet";
 import { getSelectorFromName } from "starknet/dist/utils/starknet";
 import { BigNumber } from 'ethers'

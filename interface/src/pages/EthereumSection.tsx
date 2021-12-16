@@ -2,7 +2,6 @@ import { ChainId, getExplorerAddressLink, useEthers, useLookupAddress, useContra
 import { useMemo, useState } from 'react';
 import makeBlockie from 'ethereum-blockies-base64';
 import { useEthereumERC721 } from '../hooks/useEthereumERC721';
-import useEffect from 'react';
 import { ethers } from 'ethers';
 import {
 	LinkOutlined,
@@ -37,6 +36,7 @@ const EthereumIcon = () => {
 		}}
 	>
 		<img
+			alt="Blockies"
 			style={{
 				borderRadius: 16,
 				height: 36
@@ -124,7 +124,6 @@ const StyledButton = styled(Button) <{ disabled: boolean }>`
 const ERC721WithdrawnDisplayer = ({ we }: { we: StarknetWithdrawEvent }) => {
 	const erc721 = useEthereumERC721()
 	const serc721 = useStarknetERC721();
-	const gateway = useEthereumGateway();
 	const [_tokenUri] = useContractCalls([{
 		address: erc721.address,
 		abi: erc721.abi,
@@ -153,6 +152,7 @@ const ERC721WithdrawnDisplayer = ({ we }: { we: StarknetWithdrawEvent }) => {
 
 				?
 				<img
+			alt="NFT"
 					style={{
 						width: 200,
 						height: 200,
@@ -250,6 +250,7 @@ const ERC721Displayer = ({ id }: { id: string }) => {
 
 				?
 				<img
+				alt="NFT"
 					style={{
 						width: 200,
 						height: 200,

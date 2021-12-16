@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { getStarknet } from "@argent/get-starknet"
-import { utils, ethers } from 'ethers';
-import { ERC721Abi } from './ERC721.abi';
-import { useBlockNumber, useContractCalls, useContractFunction, useEthers, TransactionStatus } from '@usedapp/core';
+import {  ethers } from 'ethers';
+import { useContractFunction, useEthers, TransactionStatus } from '@usedapp/core';
 import { useEthereumERC721 } from '../hooks/useEthereumERC721';
 import { useStarknet } from "../hooks/useStarknet";
 import { getSelectorFromName } from "starknet/dist/utils/starknet";
 import { BigNumber } from 'ethers'
-import { useEthereumBridgingEvents } from '../hooks/useEthereumBridgingEvents';
 import { useStarknetERC721 } from '../hooks/useStarknetERC721';
 import { useAsyncState } from "../hooks/useAsyncState";
 import GatewayArtifact from '../ethereum_artifacts/goerli/Gateway.json';
@@ -32,8 +29,6 @@ export const StarknetWithdrawEventsContext = React.createContext<StarknetWithdra
 	claim: () => {},
 	claimState: null
 })
-
-const unOddHex = (v: string) => v.length % 2 === 1 ? `0x0${v.slice(2)}` : v;
 
 export const StarknetWithdrawEventsContextProvider: React.FC<React.PropsWithChildren<unknown>> = (props: React.PropsWithChildren<unknown>): React.ReactElement => {
 

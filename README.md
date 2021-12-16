@@ -1,7 +1,13 @@
 # Qasr:
 
 [Qasr](https://en.wikipedia.org/wiki/Qasr_El_Nil_Bridge) is a simple NFT bridge for Starknet.
-Try it out live! https://qasr.vercel.app
+
+Try it out live! 🔥
+https://qasr.vercel.app
+
+(special thanks to Argent for their [Argent X plugin](https://github.com/argentlabs/argent-x)!)
+
+## Technical Details
 
 Here's the L1 -> L2 flow:
 

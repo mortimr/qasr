@@ -12,4 +12,8 @@ contract FakeErc721 is ERC721Enumerable {
             _mint(_to, currentTotalSupply + tokenIdx);
         }
     }
+
+    function _baseURI() internal view override returns (string memory) {
+            return "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/";
+    }
 }

@@ -66,6 +66,56 @@
     {
         "inputs": [
             {
+                "name": "_owner",
+                "type": "felt"
+            },
+            {
+                "name": "_token_idx",
+                "type": "felt"
+            }
+        ],
+        "name": "token_of_owner_by_index",
+        "outputs": [
+            {
+                "name": "_token_id",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "total_supply",
+        "outputs": [
+            {
+                "name": "_total_supply",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_token_idx",
+                "type": "felt"
+            }
+        ],
+        "name": "token_by_index",
+        "outputs": [
+            {
+                "name": "_token_id",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "name": "token_id",
                 "type": "felt"
             }

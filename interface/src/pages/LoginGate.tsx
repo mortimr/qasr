@@ -13,6 +13,7 @@ import { EthereumGatewayContextProvider } from '../contexts/EthereumGatewayConte
 import { EthereumBridgingEventsContextProvider } from '../contexts/EthereumBridgingEvents';
 import { StarknetMintCreditContextProvider } from '../contexts/StarknetMintCreditContext';
 import { StarknetWithdrawEventsContextProvider } from '../contexts/StarknetWithdrawEventsContext';
+import { useEffect } from 'react';
 
 const WalletTypeContainer = styled.div<{ color: string }>`
 	margin: 16px;
@@ -37,6 +38,18 @@ const WalletTypeContainer = styled.div<{ color: string }>`
 `
 const EthereumLoginGate = ({ EthereumSection }: { EthereumSection: React.FC }) => {
 	const ethers = useEthers();
+
+	useEffect(() => {
+		if (ethers.error && ethers.error.message.includes('Unsupported')) {
+			alert(`Unsupported network. Connect to georli.`)
+		}
+	}, [ethers.error])
+
+	useEffect(() => {
+		if (ethers.chainId && ethers.chainId !== 5) {
+			alert(`Unsupported network. Connect to georli.`)
+		}
+	}, [ethers.chainId])
 
 	if (!ethers.active) {
 		return <div
